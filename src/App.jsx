@@ -1,8 +1,12 @@
 import * as React from "react"
 // IMPORT ANY NEEDED COMPONENTS HERE
+import CategoriesColumn from "./components/CategoryColumn/CategoryColumn"
+import RestaurantsRow from "./components/RestaurantsRow/RestaurantsRow"
+import MenuDisplay from "./components/MenuDisplay/MenuDisplay"
 import { useState } from "react"
 import Header from "./components/Header/Header"
 import Chip from "./components/Chip/Chip"
+import NutritionLabel from "./components/NutritionalLabel/NutritionalLabel"
 import { createDataSet } from "./data/dataset"
 import "./App.css"
 import Instructions from "./components/Instructions/Instructions"
@@ -27,50 +31,41 @@ const { data, categories, restaurants } = createDataSet()
 export function App() {
   const [activeCategory, activateCategory] = useState(undefined);
   const [activeRestaurant, activateRestaurant] = useState(undefined);
+  const [activeMenuItem, activateMenuItem] = useState(undefined);
+
+  const currentMenuItems = data.filter(item => 
+    item.restaurant === activeRestaurant && 
+    item.food_category === activeCategory
+  );
+
+  const currentInstructions = (() => {
+    let key = undefined;
+    const [c, r, i] = [activeCategory, activeRestaurant, activeMenuItem];
+    if (i) { key = "allSelected"; } 
+    else if (c && r) { key = "noSelectedItem"; } 
+    else if (c) { key = "onlyCategory"; } 
+    else if (r) { key = "onlyRestaurant"; }
+    else {key = "start";}
+    return appInfo.instructions[key];
+  })();
+
   return (
     <main className="App">
       {/* CATEGORIES COLUMN */}
-      <div className="CategoriesColumn col">
-        <div className="categories options">
-          <h2 className="title">Categories</h2>
-          {categories.map((e, i) => {
-            const k = `cat-${i}`
-            const active = e === "Burgers" ? true : false;
-            const clickHandler = (cat) => activateCategory(cat)
-            return <Chip key={k} label={e} isActive={e === activeCategory} onClick={clickHandler} />;
-          })}
-        </div>
-      </div>
+      {CategoriesColumn({categories, activateCategory, activeCategory})}
 
       {/* MAIN COLUMN */}
       <div className="container">
-        {Header({title:appInfo.title, tagline:appInfo.tagline, description:appInfo.description})}
+        {Header(appInfo)}
 
         {/* RESTAURANTS ROW */}
-        <div className="RestaurantsRow">
-          <h2 className="title">Restaurants</h2>
-          <div className="restaurants options">
-          {restaurants.map((e, i) => {
-            const k = `rest-${i}`
-            const active = e === "In-N-Out Burger" ? true : false;
-            const clickHandler = (cat) => activateRestaurant(cat)
-            return <Chip key={k} label={e} isActive={e === activeRestaurant} onClick={clickHandler} />;
-          })}
-          </div>
-        </div>
+        {RestaurantsRow({restaurants, activateRestaurant, activeRestaurant})}
+        
 
-        {Instructions({instructions:appInfo.instructions})}
+        {Instructions({instructions:currentInstructions})}
 
         {/* MENU DISPLAY */}
-        <div className="MenuDisplay display">
-          <div className="MenuItemButtons menu-items">
-            <h2 className="title">Menu Items</h2>
-            {/* YOUR CODE HERE */}
-          </div>
-
-          {/* NUTRITION FACTS */}
-          <div className="NutritionFacts nutrition-facts">{/* YOUR CODE HERE */}</div>
-        </div>
+        {MenuDisplay({restaurants, activateMenuItem, activeMenuItem, currentMenuItems})}
 
         <div className="data-sources">
           <p>{appInfo.dataSource}</p>
